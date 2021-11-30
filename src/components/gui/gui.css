@@ -193,6 +193,11 @@
     position: relative;
 }
 
+.editor-wrapper {
+    flex-grow: 1;
+    position: relative;
+}
+
 .stage-and-target-wrapper {
     /*
         Makes rows for children:

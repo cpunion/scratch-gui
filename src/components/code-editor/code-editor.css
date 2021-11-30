@@ -1,0 +1,15 @@
+@import "../../css/units.css";
+@import "../../css/colors.css";
+@import "../../css/z-index.css";
+
+.editor-wrapper {
+    flex-grow: 1;
+    position: relative;
+}
+
+.code-editor {
+    position: relative;
+    display: flex;
+    flex-grow: 1;
+    background-color: white;
+}

@@ -21,7 +21,7 @@ import MenuBar from '../menu-bar/menu-bar.jsx';
 import CostumeLibrary from '../../containers/costume-library.jsx';
 import BackdropLibrary from '../../containers/backdrop-library.jsx';
 import Watermark from '../../containers/watermark.jsx';
-import CodeEditor from '../code-editor/code-editor.jsx';
+import CodeEditor from '../../containers/code-editor.jsx';
 
 import Backpack from '../../containers/backpack.jsx';
 import WebGlModal from '../../containers/webgl-modal.jsx';
@@ -302,7 +302,8 @@ const GUIComponent = props => {
                                     {true && <Box
                                         className={styles.editorWrapper}
                                     >
-                                        <CodeEditor />
+                                        <CodeEditor isVisible={blocksTabVisible}
+                                            vm={vm} />
                                     </Box>}
                                     {false && <Box className={styles.blocksWrapper}>
                                         <Blocks

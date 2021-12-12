@@ -24,7 +24,7 @@ import ProjectTitleInput from './project-title-input.jsx';
 import AuthorInfo from './author-info.jsx';
 import AccountNav from '../../containers/account-nav.jsx';
 import LoginDropdown from './login-dropdown.jsx';
-import SB3Downloader from '../../containers/sb3-downloader.jsx';
+import SpxPackDownloader from '../../spxpack/spxpack-downloader.jsx';
 import DeletionRestorer from '../../containers/deletion-restorer.jsx';
 import TurboMode from '../../containers/turbo-mode.jsx';
 import MenuBarHOC from '../../containers/menu-bar-hoc.jsx';
@@ -419,7 +419,12 @@ class MenuBar extends React.Component {
                                 className={classNames(styles.menuBarItem, styles.hoverable, {
                                     [styles.active]: this.props.fileMenuOpen
                                 })}
-                                onMouseUp={this.props.onClickFile}
+                                onMouseUp={(e) => {
+                                    if (!this.props.fileMenuOpen) {
+                                        this.props.onClickFile();
+                                        e.stopPropagation();
+                                    }
+                                }}
                             >
                                 <FormattedMessage
                                     defaultMessage="File"
@@ -465,7 +470,7 @@ class MenuBar extends React.Component {
                                         >
                                             {this.props.intl.formatMessage(sharedMessages.loadFromComputerTitle)}
                                         </MenuItem>
-                                        <SB3Downloader>{(className, downloadProjectCallback) => (
+                                        <SpxPackDownloader>{(className, downloadProjectCallback) => (
                                             <MenuItem
                                                 className={className}
                                                 onClick={this.getSaveToComputerHandler(downloadProjectCallback)}
@@ -476,7 +481,7 @@ class MenuBar extends React.Component {
                                                     id="gui.menuBar.downloadToComputer"
                                                 />
                                             </MenuItem>
-                                        )}</SB3Downloader>
+                                        )}</SpxPackDownloader>
                                     </MenuSection>
                                 </MenuBarMenu>
                             </div>
@@ -485,7 +490,12 @@ class MenuBar extends React.Component {
                             className={classNames(styles.menuBarItem, styles.hoverable, {
                                 [styles.active]: this.props.editMenuOpen
                             })}
-                            onMouseUp={this.props.onClickEdit}
+                            onMouseUp={(e) => {
+                                if (!this.props.editMenuOpen) {
+                                    this.props.onClickEdit();
+                                    e.stopPropagation();
+                                }
+                            }}
                         >
                             <div className={classNames(styles.editMenu)}>
                                 <FormattedMessage

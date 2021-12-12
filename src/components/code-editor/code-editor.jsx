@@ -1,44 +1,28 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Editor, { DiffEditor, useMonaco, loader } from "@monaco-editor/react";
 
-import styles from "./code-editor.css";
-
-const code = `var (
-    health = 100
-)
-
-onStart => {
-    for {
-        step 10
-        wait 0.1
-    }
+const CodeEditor = props => {
+    return (
+        <>
+            <Editor {...props} />
+        </>
+    );
 }
 
-onTouched => {
-    health = health - 10
-}
-`
 
-class CodeEditor extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            code: code,
-            language: 'javascript',
-        };
-    }
+CodeEditor.propTypes = {
+    height: PropTypes.string,
+    defaultLanguage: PropTypes.string,
+    defaultValue: PropTypes.string,
+    language: PropTypes.string,
+    value: PropTypes.string,
+    onChange: PropTypes.func,
+};
 
-    render() {
-        return (
-            <>
-                {true && <Editor
-                    height="90vh"
-                    defaultLanguage="go"
-                    defaultValue={code}
-                    />}
-            </>
-        );
-    }
-}
+CodeEditor.defaultProps = {
+    defaultLanguage: 'go',
+};
+
 
 export default CodeEditor;

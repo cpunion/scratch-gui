@@ -71,6 +71,14 @@ const projectData = translateFunction => {
                 lists: {},
                 broadcasts: {},
                 blocks: {},
+                code: `
+                onStart => {
+                    say "${translator(messages.meow)}!"
+                }
+                onClick => {
+                    say "${translator(messages.meow)}, ${translator(messages.meow)}!"
+                }
+                `,
                 currentCostume: 0,
                 costumes: [
                     {

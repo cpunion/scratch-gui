@@ -28,17 +28,14 @@ onTouched => {
 
 class CodeEditor extends React.Component {
     onChange = (code, e) => {
-        const {editingTarget, runtime} = this.props.vm;
-        const decl = genDeclCode(editingTarget, runtime.targets);
-        code = code.substr(decl.length);
+        const declCode = this._getDeclCode(this.props.vm.editingTarget);
+        code = code.substr(declCode.length);
 
         this.props.vm.setCode(code);
     };
 
     onMount = (editor) => {
-        const {editingTarget, runtime} = this.props.vm;
-
-        const declCode = genDeclCode(editingTarget, runtime.targets);
+        const declCode = this._getDeclCode(this.props.vm.editingTarget);
         const lineCount = declCode.split('\n').length;
 
         editor.onDidChangeCursorPosition((e) => {
@@ -51,9 +48,16 @@ class CodeEditor extends React.Component {
         });
     }
 
+    _getDeclCode(target) {
+        const {runtime} = this.props.vm;
+        const sprites = runtime.targets.filter(t => !t.isStage).map(t => t.sprite).sort((a, b) => a.name.localeCompare(b.name));
+        return genDeclCode(target.sprite, sprites, target.isStage)
+    }
+
     getCode(target) {
-        const code = target.sprite.code || '';
-        return genDeclCode(target, this.props.vm.runtime.targets) + code;
+        const declCode = this._getDeclCode(target);
+        const code = target.code || '';
+        return declCode + code;
     }
 
     render() {

@@ -7,27 +7,23 @@ export function genIdentifier(name) {
     return name.replace(/[ -\/\\;]/g, '');
 }
 
-export function genSoundName(name, sprite) {
-    const spriteName = genIdentifier(sprite.name);
-    const soundName = genIdentifier(name);
-    return `${spriteName}_${soundName}`;
+export function genSoundName(name, spriteName) {
+    return `${genIdentifier(spriteName)}_${genIdentifier(name)}`;
 }
 
-export function genDeclCode(target, targets, readOnly=true) {
+export function genDeclCode(target, sprites, isStage, readOnly=true) {
     let decl = "";
 
-    const sprites = targets.filter(t => !t.isStage).map(t => t.sprite).sort((a, b) => a < b ? -1 : 1);
-
     let spritesDef = [];
-    if (target.isStage) {
+    if (isStage) {
         spritesDef = sprites.map(sprite => {
             const spriteName = genIdentifier(sprite.name);
             const spriteClassName = genSpriteClassName(sprite.name);
             return `\t${spriteName} ${spriteClassName}`;
         });
-        const soundsDef = targets.map(target => {
-            return (target.sprite.sounds || []).map(sound => {
-                const soundName = genSoundName(sound.name, target.sprite);
+        const soundsDef = [target, ...sprites].map(target => {
+            return (target.sounds || []).map(sound => {
+                const soundName = genSoundName(sound.name, target.name);
                 return `\t${soundName} Sound`
             });
         }).flat();

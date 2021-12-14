@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
-
+import sb3 from "scratch-vm/src/serialization/sb3";
+import {serializeSounds, serializeCostumes} from "scratch-vm/src/serialization/serialize-assets";
 import { genDeclCode, genSpriteClassName, genSoundName, genIdentifier } from './spxpack';
 
 const DUMMY_GO_FILE = `package dummy
@@ -22,21 +23,23 @@ require (
 replace github.com/goplus/spx v1.0.0-rc3 => github.com/sunqirui1987/spx v0.9.9-0.20211212035250-0c52c4e99274
 `;
 
-function generateGmxFile(stage, targets, title) {
-    const gmxDecl = genDeclCode(stage, targets, false);
+function generateGmxFile(vm, stage, sprites, title) {
+    sprites = [...sprites].sort((a, b) => a.name.localeCompare(b.name))
+    const gmxDecl = genDeclCode(stage, sprites, stage.isStage, false);
     const escapedTitle = title.replace(/"/, "\\\"");
     const footer = `
+
 run "assets", {
     Title: "${escapedTitle} (by Go+ spx engine)",
-    Width: ${stage.runtime.constructor.STAGE_WIDTH},
-    Height: ${stage.runtime.constructor.STAGE_HEIGHT},
+    Width: ${vm.runtime.constructor.STAGE_WIDTH},
+    Height: ${vm.runtime.constructor.STAGE_HEIGHT},
 }
 `;
-    return gmxDecl + (stage.sprite.code || '') + footer;
+    return gmxDecl + (stage.code || '') + footer;
 }
 
-function generateSpxFile(target, targets) {
-    return genDeclCode(target, targets, false) + (target.sprite.code || '');
+function generateSpxFile(target) {
+    return genDeclCode(target, [], target.isStage, false) + (target.code || '');
 }
 
 function genBlankImageBytes(width, height) {
@@ -49,14 +52,17 @@ function genBlankImageBytes(width, height) {
     return canvas.getImageData(0, 0, width, height).data;
 }
 
-function saveSoundsToZip(target, zip) {
+function saveSoundsToZip(target, soundDescs, zip) {
     const baseDir = 'assets/sounds';
     const soundDir = target.isStage ? `${baseDir}` : `${baseDir}`;
-    for (const sound of target.sprite.sounds) {
-        const soundName = genSoundName(sound.name, target.sprite);
+
+    for (const sound of target.sounds) {
+        const soundName = genSoundName(sound.name, target.name);
 
         const soundFileName = `${soundDir}/${soundName}/${sound.name}.${sound.dataFormat}`;
-        zip.file(soundFileName, sound.asset.data);
+        const soundAssetFileName = `${sound.assetId}.${sound.dataFormat}`
+        const soundDesc = soundDescs.find(s => s.fileName === soundAssetFileName);
+        zip.file(soundFileName, soundDesc.fileContent);
 
         const manifestFileName = `${soundDir}/${soundName}/index.json`;
         const manifest = {
@@ -66,20 +72,20 @@ function saveSoundsToZip(target, zip) {
     }
 }
 
-function saveCostumesToZip(target, zip) {
+function saveCostumesToZip(target, costumeDescs, zip) {
     const baseDir = 'assets/sprites';
-    const spriteName = target.isStage ? 'index' : target.sprite.name;
-    const spriteClassName = genSpriteClassName(spriteName);
-    const costumeDir = `${baseDir}/${spriteClassName}`;
-    for (const costume of target.sprite.costumes) {
-        const fileName = `${costumeDir}/${costume.name}.${costume.dataFormat}`;
-        zip.file(fileName, costume.asset.data);
+    const spriteClassName = genSpriteClassName(target.name);
+    const spriteName = target.isStage ? 'index' : spriteClassName;
+    const costumeDir = `${baseDir}/${spriteName}`;
+    for (const costume of target.costumes) {
+        const costumeFileName = `${costumeDir}/${costume.name}.${costume.dataFormat}`;
+        const costumeAssetFileName = `${costume.assetId}.${costume.dataFormat}`
+        const costumeDesc = costumeDescs.find(s => s.fileName === costumeAssetFileName);
+        zip.file(costumeFileName, costumeDesc.fileContent);
     }
 }
 
-function saveSpriteJsonToZip(target, sprites, zip) {
-    console.log(target);
-
+function saveSpriteJsonToZip(vm, target, sprites, zip) {
     const sprite = {
         currentCostumeIndex: target.currentCostume,
         costumeIndex: target.currentCostume,
@@ -90,7 +96,7 @@ function saveSpriteJsonToZip(target, sprites, zip) {
         visible: target.visible,
         x: target.x,
         y: target.y,
-        costumes: target.sprite.costumes.map(c => {
+        costumes: target.costumes.map(c => {
             let path = `${c.name}.${c.dataFormat}`;
             if (target.isStage) {
                 path = `sprites/index/${path}`;
@@ -107,13 +113,13 @@ function saveSpriteJsonToZip(target, sprites, zip) {
 
     if (target.isStage) {
         sprite["map"] = {
-            width: target.runtime.constructor.STAGE_WIDTH,
-            height: target.runtime.constructor.STAGE_HEIGHT
+            width: vm.runtime.constructor.STAGE_WIDTH,
+            height: vm.runtime.constructor.STAGE_HEIGHT
         };
-        sprite["zorder"] = sprites.map(s => genSpriteClassName(s.sprite.name));
+        sprite["zorder"] = sprites.map(s => genSpriteClassName(s.name));
     }
 
-    const spriteName = target.isStage ? 'index' : target.sprite.name;
+    const spriteName = target.isStage ? 'index' : target.name;
     const spriteClassName = genSpriteClassName(spriteName);
     let fileName = `assets/sprites/${spriteClassName}/index.json`;
     if (target.isStage) {
@@ -126,7 +132,9 @@ function saveSpriteJsonToZip(target, sprites, zip) {
  * @returns {string} Project in a Scratch 3.0 Spx JSON representation.
  */
 export function saveProjectSpxPack (vm, title) {
-    console.log('Saving project as Spx Pack');
+    const soundDescs = serializeSounds(vm.runtime);
+    const costumeDescs = serializeCostumes(vm.runtime);
+    const project = sb3.serialize(vm.runtime);
 
     // TODO want to eventually move zip creation out of here, and perhaps
     // into scratch-storage
@@ -136,22 +144,20 @@ export function saveProjectSpxPack (vm, title) {
     zip.file('go.mod', GOP_MOD_FILE);
     zip.file('dummy/dummy.go', DUMMY_GO_FILE);
 
-    const stage = vm.runtime.getTargetForStage();
-    const targets = vm.runtime.targets;
-    const sprites = targets.filter(t => !t.isStage);
+    const sprites = project.targets.filter(t => !t.isStage);
 
-    vm.runtime.targets.forEach(target => {
+    project.targets.forEach(target => {
         if (target.isStage) {
-            const gmxFileContent = generateGmxFile(stage, targets, title);
+            const gmxFileContent = generateGmxFile(vm, target, sprites, title);
             zip.file('index.gmx', gmxFileContent);
         } else {
-            const spriteClassName = genSpriteClassName(target.sprite.name);
-            zip.file(`${spriteClassName}.spx`, generateSpxFile(target, targets));
+            const spriteClassName = genSpriteClassName(target.name);
+            zip.file(`${spriteClassName}.spx`, generateSpxFile(target));
         }
 
-        saveSoundsToZip(target, zip);
-        saveCostumesToZip(target, zip);
-        saveSpriteJsonToZip(target, sprites, zip);
+        saveSoundsToZip(target, soundDescs, zip);
+        saveCostumesToZip(target, costumeDescs, zip);
+        saveSpriteJsonToZip(vm, target, sprites, zip);
     });
 
     return zip.generateAsync({

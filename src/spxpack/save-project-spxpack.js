@@ -107,6 +107,7 @@ function saveSpriteJsonToZip(vm, target, sprites, zip) {
                 path,
                 x: c.rotationCenterX,
                 y: c.rotationCenterY,
+                bitmapResolution: c.bitmapResolution,
             };
         })
     }

@@ -299,12 +299,6 @@ const GUIComponent = props => {
                                     </Tab>
                                 </TabList>
                                 <TabPanel className={tabClassNames.tabPanel}>
-                                    {true && <Box
-                                        className={styles.editorWrapper}
-                                    >
-                                        <CodeEditor isVisible={blocksTabVisible}
-                                            vm={vm} />
-                                    </Box>}
                                     {false && <Box className={styles.blocksWrapper}>
                                         <Blocks
                                             canUseCloud={canUseCloud}
@@ -317,7 +311,13 @@ const GUIComponent = props => {
                                             vm={vm}
                                         />
                                     </Box>}
-                                    <Box className={styles.extensionButtonContainer}>
+                                    {true && <Box
+                                        className={styles.editorWrapper}
+                                    >
+                                        <CodeEditor isVisible={blocksTabVisible}
+                                            vm={vm} />
+                                    </Box>}
+                                    {false && <Box className={styles.extensionButtonContainer}>
                                         <button
                                             className={styles.extensionButton}
                                             title={intl.formatMessage(messages.addExtension)}
@@ -329,7 +329,7 @@ const GUIComponent = props => {
                                                 src={addExtensionIcon}
                                             />
                                         </button>
-                                    </Box>
+                                    </Box>}
                                     <Box className={styles.watermark}>
                                         <Watermark />
                                     </Box>

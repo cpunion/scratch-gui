@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import VM from 'scratch-vm';
+import sb3 from "scratch-vm/src/serialization/sb3";
 
 import {injectIntl} from 'react-intl';
 import {connect} from 'react-redux';
@@ -50,8 +51,16 @@ class CodeEditor extends React.Component {
 
     _getDeclCode(target) {
         const {runtime} = this.props.vm;
-        const sprites = runtime.targets.filter(t => !t.isStage).map(t => t.sprite).sort((a, b) => a.name.localeCompare(b.name));
-        return genDeclCode(target.sprite, sprites, target.isStage)
+        const targetObj = sb3.serialize(runtime, target.id)
+        let sprites = [];
+        if (targetObj.isStage) {
+            // hacking for performance
+            sprites = runtime.targets.filter(t => !t.isStage).map(t => ({
+                name: t.sprite.name,
+                sounds: t.getSounds(),
+            })).sort((a, b) => a.name.localeCompare(b.name));
+        }
+        return genDeclCode(targetObj, sprites, target.isStage)
     }
 
     getCode(target) {

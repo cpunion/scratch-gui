@@ -17,10 +17,8 @@ const GOP_MOD_FILE = `module mygame
 go 1.16
 
 require (
-	github.com/goplus/spx v1.0.0-rc3
+	github.com/goplus/spx v1.0.0-rc3.3
 )
-
-replace github.com/goplus/spx v1.0.0-rc3 => github.com/sunqirui1987/spx v0.9.9-0.20211212035250-0c52c4e99274
 `;
 
 function generateGmxFile(vm, stage, sprites, title) {
@@ -75,7 +73,7 @@ function saveSoundsToZip(target, soundDescs, zip) {
 function saveCostumesToZip(target, costumeDescs, zip) {
     const baseDir = 'assets/sprites';
     const spriteClassName = genSpriteClassName(target.name);
-    const spriteName = target.isStage ? 'index' : spriteClassName;
+    const spriteName = target.isStage ? 'index' : `s${spriteClassName}`;
     const costumeDir = `${baseDir}/${spriteName}`;
     for (const costume of target.costumes) {
         const costumeFileName = `${costumeDir}/${costume.name}.${costume.dataFormat}`;
@@ -85,7 +83,7 @@ function saveCostumesToZip(target, costumeDescs, zip) {
     }
 }
 
-function saveSpriteJsonToZip(vm, target, sprites, zip) {
+function saveSpriteJsonToZip(vm, project, target, sprites, zip) {
     const sprite = {
         currentCostumeIndex: target.currentCostume,
         costumeIndex: target.currentCostume,
@@ -117,12 +115,24 @@ function saveSpriteJsonToZip(vm, target, sprites, zip) {
             width: vm.runtime.constructor.STAGE_WIDTH,
             height: vm.runtime.constructor.STAGE_HEIGHT
         };
-        sprite["zorder"] = sprites.map(s => genSpriteClassName(s.name));
+        sprite["zorder"] = sprites.map(s => `s${genSpriteClassName(s.name)}`);
+        const stageMonitors = project.monitors.filter(m => m.visible).map(m => ({
+            type: "stageMonitor",
+            target: "",
+            val: `getVar:${m.params.VARIABLE}`,
+            color: 15629590, // default color
+            label: m.params.VARIABLE,
+            mode: m.mode == "large" ? 2 : 1,
+            x: m.x,
+            y: m.y,
+            visible: m.visible,
+        }))
+        sprite["zorder"] = [...sprite["zorder"], ...stageMonitors];
     }
 
     const spriteName = target.isStage ? 'index' : target.name;
     const spriteClassName = genSpriteClassName(spriteName);
-    let fileName = `assets/sprites/${spriteClassName}/index.json`;
+    let fileName = `assets/sprites/s${spriteClassName}/index.json`;
     if (target.isStage) {
         fileName = 'assets/index.json';
     }
@@ -136,6 +146,7 @@ export function saveProjectSpxPack (vm, title) {
     const soundDescs = serializeSounds(vm.runtime);
     const costumeDescs = serializeCostumes(vm.runtime);
     const project = sb3.serialize(vm.runtime);
+    console.log(project)
 
     // TODO want to eventually move zip creation out of here, and perhaps
     // into scratch-storage
@@ -144,6 +155,7 @@ export function saveProjectSpxPack (vm, title) {
     // Put everything in a zip file
     zip.file('go.mod', GOP_MOD_FILE);
     zip.file('dummy/dummy.go', DUMMY_GO_FILE);
+    zip.file('project.json', JSON.stringify(project, null, 4));
 
     const sprites = project.targets.filter(t => !t.isStage);
 
@@ -158,7 +170,7 @@ export function saveProjectSpxPack (vm, title) {
 
         saveSoundsToZip(target, soundDescs, zip);
         saveCostumesToZip(target, costumeDescs, zip);
-        saveSpriteJsonToZip(vm, target, sprites, zip);
+        saveSpriteJsonToZip(vm, project, target, sprites, zip);
     });
 
     return zip.generateAsync({

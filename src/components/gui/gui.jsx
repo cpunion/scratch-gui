@@ -299,7 +299,7 @@ const GUIComponent = props => {
                                     </Tab>
                                 </TabList>
                                 <TabPanel className={tabClassNames.tabPanel}>
-                                    {false && <Box className={styles.blocksWrapper}>
+                                    <Box className={styles.blocksWrapper}>
                                         <Blocks
                                             canUseCloud={canUseCloud}
                                             grow={1}
@@ -310,13 +310,10 @@ const GUIComponent = props => {
                                             stageSize={stageSize}
                                             vm={vm}
                                         />
-                                    </Box>}
-                                    {true && <Box
-                                        className={styles.editorWrapper}
-                                    >
-                                        <CodeEditor isVisible={blocksTabVisible}
-                                            vm={vm} />
-                                    </Box>}
+                                    </Box>
+                                    <Box className={styles.editorWrapper}>
+                                        <CodeEditor isVisible={blocksTabVisible} vm={vm} />
+                                    </Box>
                                     {false && <Box className={styles.extensionButtonContainer}>
                                         <button
                                             className={styles.extensionButton}
@@ -341,7 +338,7 @@ const GUIComponent = props => {
                                     {soundsTabVisible ? <SoundTab vm={vm} /> : null}
                                 </TabPanel>
                             </Tabs>
-                            {backpackVisible ? (
+                            {false && backpackVisible ? (
                                 <Backpack host={backpackHost} />
                             ) : null}
                         </Box>

@@ -7,128 +7,111 @@ const blocks = {
     },
 
     control_repeat_until(project, target, block){
-        return `for !(${genInput(project, target, block.inputs.CONDITION)}) {
-        ${genInput(project, target, block.inputs.SUBSTACK)}
-    }
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return {
+            [`for !(${genInput(project, target, block.inputs.CONDITION)})`]: genInput(project, target, block.inputs.SUBSTACK),
+        };
     },
 
     control_wait(project, target, block){
-        return `wait ${genInput(project, target, block.inputs.DURATION)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `wait ${genInput(project, target, block.inputs.DURATION)}`
     },
 
     control_if(project, target, block){
-        return `if (${genInput(project, target, block.inputs.CONDITION)}) {
-        ${genInput(project, target, block.inputs.SUBSTACK)}
-    }
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return {
+            [`if (${genInput(project, target, block.inputs.CONDITION)})`]: genInput(project, target, block.inputs.SUBSTACK),
+        };
     },
 
     control_if_else(project, target, block){
-        return `if (${genInput(project, target, block.inputs.CONDITION)}) {
-        ${genInput(project, target, block.inputs.SUBSTACK)}
-    } else {
-        ${genInput(project, target, block.inputs.SUBSTACK2)}
-    }
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return [
+            {
+                [`if (${genInput(project, target, block.inputs.CONDITION)})`]: genInput(project, target, block.inputs.SUBSTACK),
+            },
+            {
+                'else': genInput(project, target, block.inputs.SUBSTACK2),
+            },
+        ];
     },
 
     control_repeat(project, target, block){
-        return `for i <- :${genInput(project, target, block.inputs.TIMES)} {
-        ${genInput(project, target, block.inputs.SUBSTACK)}
-    }
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return {
+            [`for i <- :${genInput(project, target, block.inputs.TIMES)}`]: genInput(project, target, block.inputs.SUBSTACK),
+        };
     },
 
     control_forever(project, target, block){
-        return `for {
-        ${genInput(project, target, block.inputs.SUBSTACK)}
-    }
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return {
+            'for': genInput(project, target, block.inputs.SUBSTACK),
+        };
     },
 
     control_delete_this_clone(project, target, block){
-        return `destroy
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return 'destro';
     },
 
     control_start_as_clone(project, target, block){
-        return `onClone => {
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}
-        }`;
+        return {
+            'onClone =>': genFuncOrEvent(project, target, target.blocks[block.next]),
+        };
     },
 
     control_create_clone_of(project, target, block){
-        return `${genInput(project, target, block.inputs.CLONE_OPTION)}
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return genInput(project, target, block.inputs.CLONE_OPTION);
     },
 
     control_create_clone_of_menu(project, target, block){
         const sprite = block.fields.CLONE_OPTION[0];
         if (sprite === '_myself_') {
-            return `clone
-            ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+            return 'clone';
         } else {
-            return `clone ${genClassName(sprite)}
-            ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+            return `clone ${genClassName(sprite)}`;
         }
     },
 
     control_wait_until(project, target, block){
-        return `for !(${genInput(project, target, block.inputs.CONDITION)}) {}
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `for !(${genInput(project, target, block.inputs.CONDITION)}) {}`;
     },
 
     event_whenbackdropswitchesto(project, target, block){
         const backdropName = JSON.stringify(block.fields.BACKDROP[0]);
-        return `
-onScene ${backdropName}, => {
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}
-}`;
+        return {
+            [`onScene ${backdropName}, =>`]: genFuncOrEvent(project, target, target.blocks[block.next]),
+        };
     },
 
     event_whenflagclicked(project, target, block){
-        return `
-onStart => {
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}
-}`;
+        return {
+            'onStart =>': genFuncOrEvent(project, target, target.blocks[block.next])
+        };
     },
 
     event_whenbroadcastreceived(project, target, block){
         const broadcastName = JSON.stringify(block.fields.BROADCAST_OPTION[0]);
-        return `
-onMsg ${broadcastName}, => {
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}
-}`;
+        return {[`onMsg ${broadcastName}, =>`]: genFuncOrEvent(project, target, target.blocks[block.next])};
     },
 
     event_whenstageclicked(project, target, block){
-        return `
-onClick => {
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}
-}`;
+        return {
+            'onClick =>': genFuncOrEvent(project, target, target.blocks[block.next])
+        };
     },
 
     event_whenthisspriteclicked(project, target, block){
-        return `onClick => {
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}
-    }`;
+        return {
+            'onClick =>': genFuncOrEvent(project, target, target.blocks[block.next])
+        };
     },
 
     event_broadcast(project, target, block){
-        return `broadcast ${genInput(project, target, block.inputs.BROADCAST_INPUT)}
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `broadcast ${genInput(project, target, block.inputs.BROADCAST_INPUT)}`;
     },
 
     event_broadcastandwait(project, target, block){
-        return `broadcast ${genInput(project, target, block.inputs.BROADCAST_INPUT)}, true
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `broadcast ${genInput(project, target, block.inputs.BROADCAST_INPUT)}, true`;
     },
 
     looks_switchbackdropto(project, target, block){
-        return `startScene ${genInput(project, target, block.inputs.BACKDROP)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `startScene ${genInput(project, target, block.inputs.BACKDROP)}`;
     },
 
     looks_backdrops(project, target, block){
@@ -145,13 +128,11 @@ onClick => {
     },
 
     looks_switchcostumeto(project, target, block){
-        return `startScene ${genInput(project, target, block.inputs.COSTUME)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `startScene ${genInput(project, target, block.inputs.COSTUME)}`;
     },
 
     looks_nextcostume(project, target, block){
-        return `nextScene
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return 'nextScene';
     },
 
     looks_costume(project, target, block){
@@ -159,43 +140,35 @@ onClick => {
     },
 
     looks_seteffectto(project, target, block){
-        return `setEffect ${genEffect(block.fields.EFFECT[0])}, ${genInput(project, target, block.inputs.VALUE)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `setEffect ${genEffect(block.fields.EFFECT[0])}, ${genInput(project, target, block.inputs.VALUE)}`;
     },
 
     looks_changeeffectby(project, target, block){
-        return `changeEffect ${genEffect(block.fields.EFFECT[0])}, ${genInput(project, target, block.inputs.CHANGE)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `changeEffect ${genEffect(block.fields.EFFECT[0])}, ${genInput(project, target, block.inputs.CHANGE)}`;
     },
 
     data_hidevariable(project, target, block){
-        return `hideVar ${JSON.stringify(block.fields.VARIABLE[0])}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `hideVar ${JSON.stringify(block.fields.VARIABLE[0])}`;
     },
 
     data_showvariable(project, target, block){
-        return `showVar ${JSON.stringify(block.fields.VARIABLE[0])}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `showVar ${JSON.stringify(block.fields.VARIABLE[0])}`;
     },
 
     data_setvariableto(project, target, block){
-        return `${genIdentifier(block.fields.VARIABLE[0])} = ${genInput(project, target, block.inputs.VALUE)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `${genIdentifier(block.fields.VARIABLE[0])} = ${genInput(project, target, block.inputs.VALUE)}`;
     },
 
     data_changevariableby(project, target, block){
-        return `${genIdentifier(block.fields.VARIABLE[0])} += ${genInput(project, target, block.inputs.VALUE)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `${genIdentifier(block.fields.VARIABLE[0])} += ${genInput(project, target, block.inputs.VALUE)}`;
     },
     
     data_deleteoflist(project, target, block){
-        return `${genIdentifier(block.fields.LIST[0])}.delete(${toListIndex(genInput(project, target, block.inputs.INDEX))})
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `${genIdentifier(block.fields.LIST[0])}.delete(${toListIndex(genInput(project, target, block.inputs.INDEX))})`;
     },
 
     data_addtolist(project, target, block){
-        return `${genIdentifier(block.fields.LIST[0])}.append(${genInput(project, target, block.inputs.ITEM)})
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `${genIdentifier(block.fields.LIST[0])}.append(${genInput(project, target, block.inputs.ITEM)})`;
     },
 
     data_itemoflist(project, target, block){
@@ -203,8 +176,7 @@ onClick => {
     },
 
     data_replaceitemoflist(project, target, block){
-        return `${genIdentifier(block.fields.LIST[0])}.set(${genInput(project, target, block.inputs.INDEX)}, ${genInput(project, target, block.inputs.ITEM)})
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `${genIdentifier(block.fields.LIST[0])}.set(${genInput(project, target, block.inputs.INDEX)}, ${genInput(project, target, block.inputs.ITEM)})`;
     },
 
     data_lengthoflist(project, target, block){
@@ -212,13 +184,11 @@ onClick => {
     },
 
     motion_glidesecstoxy(project, target, block){
-        return `glide ${genInput(project, target, block.inputs.X)}, ${genInput(project, target, block.inputs.Y)}, ${genInput(project, target, block.inputs.SECS)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `glide ${genInput(project, target, block.inputs.X)}, ${genInput(project, target, block.inputs.Y)}, ${genInput(project, target, block.inputs.SECS)}`;
     },
 
     motion_gotoxy(project, target, block){
-        return `setXYpos ${genInput(project, target, block.inputs.X)}, ${genInput(project, target, block.inputs.Y)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `setXYpos ${genInput(project, target, block.inputs.X)}, ${genInput(project, target, block.inputs.Y)}`;
     },
 
     motion_xposition(project, target, block){
@@ -230,18 +200,15 @@ onClick => {
     },
 
     motion_movesteps(project, target, block){
-        return `step ${genInput(project, target, block.inputs.STEPS)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `step ${genInput(project, target, block.inputs.STEPS)}`;
     },
 
     sound_stopallsounds(project, target, block){
-        return `stopAllSounds
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `stopAllSounds`;
     },
 
     sound_playuntildone(project, target, block){
-        return `play ${genInput(project, target, block.inputs.SOUND_MENU)}, true
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `play ${genInput(project, target, block.inputs.SOUND_MENU)}, true`;
     },
 
     sound_sounds_menu(project, target, block){
@@ -249,13 +216,11 @@ onClick => {
     },
 
     looks_show(project, target, block){
-        return `show
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return 'show';
     },
 
     looks_hide(project, target, block){
-        return `hide
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return 'hide';
     },
 
     looks_gotofrontback(project, target, block){
@@ -266,18 +231,15 @@ onClick => {
             case 'back': fun = 'gotoBack'; break;
             default: fun = `goBackLayers ${layer}`; break;
         }
-        return `${fun}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return fun;
     },
 
     looks_sayforsecs(project, target, block){
-        return `say ${genInput(project, target, block.inputs.MESSAGE)}, ${genInput(project, target, block.inputs.SECS)}
-    ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `say ${genInput(project, target, block.inputs.MESSAGE)}, ${genInput(project, target, block.inputs.SECS)}`;
     },
 
     motion_goto(project, target, block){
-        return `goto ${genInput(project, target, block.inputs.TO)}
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `goto ${genInput(project, target, block.inputs.TO)}`;
     },
 
     motion_goto_menu(project, target, block){
@@ -376,9 +338,9 @@ onClick => {
     },
 
     procedures_definition(project, target, block){
-        return `func ${genInput(project, target, block.inputs.custom_block)} {
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}
-        }`;
+        return {
+            [`func ${genInput(project, target, block.inputs.custom_block)}`]: genFuncOrEvent(project, target, target.blocks[block.next]),
+        };
     },
 
     procedures_prototype(project, target, block){
@@ -390,8 +352,7 @@ onClick => {
         const argIds = JSON.parse(block.mutation.argumentids);
 
         const args = argIds.map(argId => genInput(project, target, block.inputs[argId])).join(', ');
-        return `${genFuncName(block.mutation.proccode)}(${args})
-        ${genFuncOrEvent(project, target, target.blocks[block.next])}`;
+        return `${genFuncName(block.mutation.proccode)}(${args})`;
     },
 
     sensing_touchingobject(project, target, block){
@@ -482,7 +443,7 @@ function genInput_(project, target, input) {
             return value;
         case 9: // Color
             return value;
-        case 10: return value;
+        case 10: return JSON.stringify(value);
         case 11: return JSON.stringify(value); // broadcast
         case 12: return value; // variable
         default:
@@ -499,27 +460,54 @@ function genInput(project, target, input) {
 
 function genFuncOrEvent(project, target, block) {
     if (!block) {
-        return '';
+        return [];
     }
+
+    console.log("genFuncOrEvent:", block);
 
     const proc = blocks[block.opcode];
     if (proc) {
-        return proc(project, target, block);
+        let result = [proc(project, target, block)];
+        if (block.next && !block.topLevel) {
+            result = [...result, ...genFuncOrEvent(project, target, target.blocks[block.next])];
+        }
+        return result;
     } else {
         console.log("============ Unknown block", JSON.stringify(block, null, 4), "===========");
     }
 }
 
+function genCodeIndent(code, indent=0) {
+    const indentStr = '\t'.repeat(indent);
+    console.log("genCodeIndent:", JSON.stringify(code), typeof(code), Array.isArray(code));
+    if (typeof(code) == 'object' && Array.isArray(code)) {
+        return code.map(c => genCodeIndent(c, indent)).flat();
+    } else if (typeof(code) == 'object') {
+        const [key, body] = Object.entries(code)[0];
+        console.log("key:", key, "body:", body);
+        return [
+            `${indentStr}${key} {`,
+            ...genCodeIndent(body, indent + 1),
+            `${indentStr}}`
+        ];
+    } else {
+        return [`${indentStr}${code}`];
+    }
+}
+
 export function genCode(project, target) {
     const topLevelBlocks = Object.entries(target.blocks).filter(([id, def]) => def.topLevel);
-    const topLevels = topLevelBlocks.map(block => genFuncOrEvent(project, target, block[1]));
-    return topLevels.join("\n\n");
+    const topLevels = topLevelBlocks.map(block => genFuncOrEvent(project, target, block[1])[0]);
+    const codeBlocks = topLevels.map(topLevel => genCodeIndent(topLevel).join("\n"));
+    console.log("codeBlocks:", JSON.stringify(codeBlocks, null, 4));
+    return codeBlocks.join("\n\n");
 }
 
 export function genTargetsCode(vm) {
     const project = sb3.serialize(vm.runtime);
     project.targets.forEach((target, i) => {
         const code = genCode(project, target);
+        console.log("genCode:", target, "->", JSON.stringify(code, null, 4));
         const vmTarget = vm.runtime.targets[i];
         vmTarget.setCode(code);
     });

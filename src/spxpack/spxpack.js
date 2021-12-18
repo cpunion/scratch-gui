@@ -1,44 +1,25 @@
-export function genSpriteClassName(name) {
-    const newName = genIdentifier(name);
-    return newName[0].toUpperCase() + newName.slice(1);
-}
+import {
+    genVariable,
+    genList,
+    genVarInit,
+    genListInit,
+} from './vars';
+import {
+    genIdentifier,
+    genClassName,
+    genSoundName,
+} from './gen';
 
-export function genIdentifier(name) {
-    return name.replace(/[ -\/\\;]/g, '');
-}
-
-export function genSoundName(name, spriteName) {
-    return `${genIdentifier(spriteName)}_${genIdentifier(name)}`;
-}
-
-function genVariable(id, name, value) {
-    // return `\t${genIdentifier(name)} int${value === "" ? "" : ` = ${value}`}`;
-    return `\t${genIdentifier(name)} float64`;
-}
-
-function genList(id, name, value) {
-    const list = JSON.stringify(value);
-    // return `\t${genIdentifier(name)} = ${list}`;
-    return `\t${genIdentifier(name)} []interface{}`;
-}
-
-function genVarInit(id, name, value) {
-    return `\t${genIdentifier(name)} = ${value}`;
-}
-
-function genListInit(id, name, value) {
-    const values = value.map(v => JSON.stringify(v)).join(', ');
-    return `\t${genIdentifier(name)} = []interface{}{${values}}`;
-}
-
-export function genDeclCode(target, sprites, isStage, readOnly=true) {
+export function genDeclCode(project, target, readOnly=true) {
     let decl = "";
 
     let spritesDef = [];
-    if (isStage) {
+    if (target.isStage) {
+        const sprites = project.targets.filter(t => !t.isStage);
+
         spritesDef = sprites.map(sprite => {
             const spriteName = genIdentifier(sprite.name);
-            const spriteClassName = genSpriteClassName(sprite.name);
+            const spriteClassName = genClassName(sprite.name);
             return `\ts${spriteName} ${spriteClassName}`;
         });
         const soundsDef = [target, ...sprites].map(target => {
@@ -57,24 +38,24 @@ export function genDeclCode(target, sprites, isStage, readOnly=true) {
     }
 
     const vars = Object.entries(target.variables).map(([id, value]) => {
-        return genVariable(id, value[0], value[1]);
+        return genVariable(project, id, value[0], value[1]);
     });
     if (vars.length > 0) {
         decl += `\n${vars.join("\n")}\n`;
     }
 
     const lists = Object.entries(target.lists).map(([id, value]) => {
-        return genList(id, value[0], value[1]);
+        return genList(project, id, value[0], value[1]);
     });
     if (lists.length > 0) {
         decl += `\n${lists.join("\n")}\n`;
     }
 
     const varInits = Object.entries(target.variables).filter(([id, value]) => value[1] != "").map(([id, value]) => {
-        return genVarInit(id, value[0], value[1]);
+        return genVarInit(project, id, value[0], value[1]);
     });
     const listInits = Object.entries(target.lists).filter(([id, value]) => value[1] != "").map(([id, value]) => {
-        return genListInit(id, value[0], value[1]);
+        return genListInit(project, id, value[0], value[1]);
     });
     let initializers = [...varInits, ...listInits];
     if (initializers.length > 0) {

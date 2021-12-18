@@ -1,7 +1,8 @@
 import JSZip from 'jszip';
 import sb3 from "scratch-vm/src/serialization/sb3";
 import {serializeSounds, serializeCostumes} from "scratch-vm/src/serialization/serialize-assets";
-import { genDeclCode, genSpriteClassName, genSoundName, genIdentifier } from './spxpack';
+import {genDeclCode} from './spxpack';
+import {genClassName, genSoundName} from './gen';
 
 const DUMMY_GO_FILE = `package dummy
 
@@ -21,9 +22,8 @@ require (
 )
 `;
 
-function generateGmxFile(vm, stage, sprites, title) {
-    sprites = [...sprites].sort((a, b) => a.name.localeCompare(b.name))
-    const gmxDecl = genDeclCode(stage, sprites, stage.isStage, false);
+function generateGmxFile(vm, project, stage, title) {
+    const gmxDecl = genDeclCode(project, stage, false);
     const escapedTitle = title.replace(/"/, "\\\"");
     const footer = `
 
@@ -36,8 +36,8 @@ run "assets", {
     return gmxDecl + (stage.code || '') + footer;
 }
 
-function generateSpxFile(target) {
-    return genDeclCode(target, [], target.isStage, false) + (target.code || '');
+function generateSpxFile(project, target) {
+    return genDeclCode(project, target, false) + (target.code || '');
 }
 
 function genBlankImageBytes(width, height) {
@@ -53,8 +53,9 @@ function genBlankImageBytes(width, height) {
 function saveSoundsToZip(target, soundDescs, zip) {
     const baseDir = 'assets/sounds';
     const soundDir = target.isStage ? `${baseDir}` : `${baseDir}`;
-
+    console.log(target);
     for (const sound of target.sounds) {
+        console.log(sound);
         const soundName = genSoundName(sound.name, target.name);
 
         const soundFileName = `${soundDir}/${soundName}/${sound.name}.${sound.dataFormat}`;
@@ -72,7 +73,7 @@ function saveSoundsToZip(target, soundDescs, zip) {
 
 function saveCostumesToZip(target, costumeDescs, zip) {
     const baseDir = 'assets/sprites';
-    const spriteClassName = genSpriteClassName(target.name);
+    const spriteClassName = genClassName(target.name);
     const spriteName = target.isStage ? 'index' : `s${spriteClassName}`;
     const costumeDir = `${baseDir}/${spriteName}`;
     for (const costume of target.costumes) {
@@ -84,6 +85,21 @@ function saveCostumesToZip(target, costumeDescs, zip) {
 }
 
 function saveSpriteJsonToZip(vm, project, target, sprites, zip) {
+    const costumes = target.costumes.map(c => {
+        let path = `${c.name}.${c.dataFormat}`;
+        if (target.isStage) {
+            path = `sprites/index/${path}`;
+        }
+
+        return {
+            name: c.name,
+            path,
+            x: c.rotationCenterX,
+            y: c.rotationCenterY,
+            bitmapResolution: c.bitmapResolution,
+        };
+    });
+
     const sprite = {
         currentCostumeIndex: target.currentCostume,
         costumeIndex: target.currentCostume,
@@ -94,20 +110,7 @@ function saveSpriteJsonToZip(vm, project, target, sprites, zip) {
         visible: target.visible,
         x: target.x,
         y: target.y,
-        costumes: target.costumes.map(c => {
-            let path = `${c.name}.${c.dataFormat}`;
-            if (target.isStage) {
-                path = `sprites/index/${path}`;
-            }
-
-            return {
-                name: c.name,
-                path,
-                x: c.rotationCenterX,
-                y: c.rotationCenterY,
-                bitmapResolution: c.bitmapResolution,
-            };
-        })
+        costumes,
     }
 
     if (target.isStage) {
@@ -115,7 +118,7 @@ function saveSpriteJsonToZip(vm, project, target, sprites, zip) {
             width: vm.runtime.constructor.STAGE_WIDTH,
             height: vm.runtime.constructor.STAGE_HEIGHT
         };
-        sprite["zorder"] = sprites.map(s => `s${genSpriteClassName(s.name)}`);
+        sprite["zorder"] = sprites.map(s => `s${genClassName(s.name)}`);
         const stageMonitors = project.monitors.filter(m => m.visible).map(m => ({
             type: "stageMonitor",
             target: "",
@@ -131,7 +134,7 @@ function saveSpriteJsonToZip(vm, project, target, sprites, zip) {
     }
 
     const spriteName = target.isStage ? 'index' : target.name;
-    const spriteClassName = genSpriteClassName(spriteName);
+    const spriteClassName = genClassName(spriteName);
     let fileName = `assets/sprites/s${spriteClassName}/index.json`;
     if (target.isStage) {
         fileName = 'assets/index.json';
@@ -139,14 +142,10 @@ function saveSpriteJsonToZip(vm, project, target, sprites, zip) {
     zip.file(fileName, JSON.stringify(sprite, null, 4));
 }
 
-/**
- * @returns {string} Project in a Scratch 3.0 Spx JSON representation.
- */
 export function saveProjectSpxPack (vm, title) {
     const soundDescs = serializeSounds(vm.runtime);
     const costumeDescs = serializeCostumes(vm.runtime);
     const project = sb3.serialize(vm.runtime);
-    console.log(project)
 
     // TODO want to eventually move zip creation out of here, and perhaps
     // into scratch-storage
@@ -161,11 +160,11 @@ export function saveProjectSpxPack (vm, title) {
 
     project.targets.forEach(target => {
         if (target.isStage) {
-            const gmxFileContent = generateGmxFile(vm, target, sprites, title);
+            const gmxFileContent = generateGmxFile(vm, project, target, title);
             zip.file('index.gmx', gmxFileContent);
         } else {
-            const spriteClassName = genSpriteClassName(target.name);
-            zip.file(`${spriteClassName}.spx`, generateSpxFile(target));
+            const spriteClassName = genClassName(target.name);
+            zip.file(`${spriteClassName}.spx`, generateSpxFile(project, target));
         }
 
         saveSoundsToZip(target, soundDescs, zip);

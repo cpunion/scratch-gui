@@ -5,6 +5,7 @@ import {defineMessages, intlShape, injectIntl} from 'react-intl';
 import {connect} from 'react-redux';
 import log from '../lib/log';
 import sharedMessages from './shared-messages';
+import {genTargetsCode} from '../spxpack/code';
 
 import {
     LoadingStates,
@@ -150,6 +151,13 @@ const SBFileUploaderHOC = function (WrappedComponent) {
                 const filename = this.fileToUpload && this.fileToUpload.name;
                 let loadingSuccess = false;
                 this.props.vm.loadProject(this.fileReader.result)
+                    .then(() => {
+                        try {
+                            genTargetsCode(this.props.vm);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    })
                     .then(() => {
                         if (filename) {
                             const uploadedProjectTitle = this.getProjectTitleFromFilename(filename);

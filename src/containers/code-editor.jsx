@@ -51,16 +51,9 @@ class CodeEditor extends React.Component {
 
     _getDeclCode(target) {
         const {runtime} = this.props.vm;
+        const project = sb3.serialize(runtime);
         const targetObj = sb3.serialize(runtime, target.id)
-        let sprites = [];
-        if (targetObj.isStage) {
-            // hacking for performance
-            sprites = runtime.targets.filter(t => !t.isStage).map(t => ({
-                name: t.sprite.name,
-                sounds: t.getSounds(),
-            })).sort((a, b) => a.name.localeCompare(b.name));
-        }
-        return genDeclCode(targetObj, sprites, target.isStage)
+        return genDeclCode(project, targetObj);
     }
 
     getCode(target) {

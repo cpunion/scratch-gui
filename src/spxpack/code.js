@@ -13,19 +13,19 @@ const blocks = {
     },
 
     control_wait(project, target, block){
-        return `wait ${genInput(project, target, block.inputs.DURATION)}`
+        return `wait(${genInput(project, target, block.inputs.DURATION)})`
     },
 
     control_if(project, target, block){
         return {
-            [`if (${genInput(project, target, block.inputs.CONDITION)})`]: genInput(project, target, block.inputs.SUBSTACK),
+            [`if ${genInput(project, target, block.inputs.CONDITION)}`]: genInput(project, target, block.inputs.SUBSTACK),
         };
     },
 
     control_if_else(project, target, block){
         return [
             {
-                [`if (${genInput(project, target, block.inputs.CONDITION)})`]: genInput(project, target, block.inputs.SUBSTACK),
+                [`if ${genInput(project, target, block.inputs.CONDITION)}`]: genInput(project, target, block.inputs.SUBSTACK),
                 'else': genInput(project, target, block.inputs.SUBSTACK2),
             },
         ];
@@ -44,12 +44,12 @@ const blocks = {
     },
 
     control_delete_this_clone(project, target, block){
-        return 'destro';
+        return 'destroy';
     },
 
     control_start_as_clone(project, target, block){
         return {
-            'onClone =>': genFuncOrEvent(project, target, target.blocks[block.next]),
+            'onCloned =>': genFuncOrEvent(project, target, target.blocks[block.next]),
         };
     },
 
@@ -62,7 +62,7 @@ const blocks = {
         if (sprite === '_myself_') {
             return 'clone';
         } else {
-            return `clone ${genClassName(sprite)}`;
+            return `clone(${genClassName(sprite)})`;
         }
     },
 
@@ -101,15 +101,15 @@ const blocks = {
     },
 
     event_broadcast(project, target, block){
-        return `broadcast ${genInput(project, target, block.inputs.BROADCAST_INPUT)}`;
+        return `broadcast(${genInput(project, target, block.inputs.BROADCAST_INPUT)})`;
     },
 
     event_broadcastandwait(project, target, block){
-        return `broadcast ${genInput(project, target, block.inputs.BROADCAST_INPUT)}, true`;
+        return `broadcast(${genInput(project, target, block.inputs.BROADCAST_INPUT)}, true)`;
     },
 
     looks_switchbackdropto(project, target, block){
-        return `startScene ${genInput(project, target, block.inputs.BACKDROP)}`;
+        return `startScene(${genInput(project, target, block.inputs.BACKDROP)})`;
     },
 
     looks_backdrops(project, target, block){
@@ -119,14 +119,14 @@ const blocks = {
     looks_backdropnumbername(project, target, block){
         const nameOrIndex = block.fields.NUMBER_NAME[0];
         if (nameOrIndex === 'name') {
-            return "sceneName()";
+            return "sceneName";
         } else {
-            return "sceneIndex()";
+            return "sceneIndex";
         }
     },
 
     looks_switchcostumeto(project, target, block){
-        return `startScene ${genInput(project, target, block.inputs.COSTUME)}`;
+        return `startScene(${genInput(project, target, block.inputs.COSTUME)})`;
     },
 
     looks_nextcostume(project, target, block){
@@ -138,19 +138,19 @@ const blocks = {
     },
 
     looks_seteffectto(project, target, block){
-        return `setEffect ${genEffect(block.fields.EFFECT[0])}, ${genInput(project, target, block.inputs.VALUE)}`;
+        return `setEffect(${genEffect(block.fields.EFFECT[0])}, ${genInput(project, target, block.inputs.VALUE)})`;
     },
 
     looks_changeeffectby(project, target, block){
-        return `changeEffect ${genEffect(block.fields.EFFECT[0])}, ${genInput(project, target, block.inputs.CHANGE)}`;
+        return `changeEffect(${genEffect(block.fields.EFFECT[0])}, ${genInput(project, target, block.inputs.CHANGE)})`;
     },
 
     data_hidevariable(project, target, block){
-        return `hideVar ${JSON.stringify(block.fields.VARIABLE[0])}`;
+        return `hideVar(${JSON.stringify(block.fields.VARIABLE[0])})`;
     },
 
     data_showvariable(project, target, block){
-        return `showVar ${JSON.stringify(block.fields.VARIABLE[0])}`;
+        return `showVar(${JSON.stringify(block.fields.VARIABLE[0])})`;
     },
 
     data_setvariableto(project, target, block){
@@ -182,11 +182,11 @@ const blocks = {
     },
 
     motion_glidesecstoxy(project, target, block){
-        return `glide ${genInput(project, target, block.inputs.X)}, ${genInput(project, target, block.inputs.Y)}, ${genInput(project, target, block.inputs.SECS)}`;
+        return `glide(${genInput(project, target, block.inputs.X)}, ${genInput(project, target, block.inputs.Y)}, ${genInput(project, target, block.inputs.SECS)})`;
     },
 
     motion_gotoxy(project, target, block){
-        return `setXYpos ${genInput(project, target, block.inputs.X)}, ${genInput(project, target, block.inputs.Y)}`;
+        return `setXYpos(${genInput(project, target, block.inputs.X)}, ${genInput(project, target, block.inputs.Y)})`;
     },
 
     motion_xposition(project, target, block){
@@ -206,7 +206,7 @@ const blocks = {
     },
 
     sound_playuntildone(project, target, block){
-        return `play ${genInput(project, target, block.inputs.SOUND_MENU)}, true`;
+        return `play(${genInput(project, target, block.inputs.SOUND_MENU)}, true)`;
     },
 
     sound_sounds_menu(project, target, block){
@@ -233,11 +233,11 @@ const blocks = {
     },
 
     looks_sayforsecs(project, target, block){
-        return `say ${genInput(project, target, block.inputs.MESSAGE)}, ${genInput(project, target, block.inputs.SECS)}`;
+        return `say(${genInput(project, target, block.inputs.MESSAGE)}, ${genInput(project, target, block.inputs.SECS)})`;
     },
 
     motion_goto(project, target, block){
-        return `goto ${genInput(project, target, block.inputs.TO)}`;
+        return `goto(${genInput(project, target, block.inputs.TO)})`;
     },
 
     motion_goto_menu(project, target, block){
@@ -256,59 +256,63 @@ const blocks = {
     },
 
     operator_and(project, target, block){
-        return `${genInput(project, target, block.inputs.OPERAND1)} && ${genInput(project, target, block.inputs.OPERAND2)}`;
+        const left = genInput(project, target, block.inputs.OPERAND1);
+        const right = genInput(project, target, block.inputs.OPERAND2);
+        return `(${left}) && (${right})`;
     },
 
     operator_or(project, target, block){
-        return `${genInput(project, target, block.inputs.OPERAND1)} || ${genInput(project, target, block.inputs.OPERAND2)}`;
+        const left = genInput(project, target, block.inputs.OPERAND1);
+        const right = genInput(project, target, block.inputs.OPERAND2);
+        return `(${left}) || (${right})`;
     },
 
     operator_equals(project, target, block){
         const left = genInput(project, target, block.inputs.OPERAND1);
         const right = genInput(project, target, block.inputs.OPERAND2);
-        return `${left} == ${right}`;
+        return `(${left}) == (${right})`;
     },
 
     operator_lt(project, target, block){
         const left = genInput(project, target, block.inputs.OPERAND1);
         const right = genInput(project, target, block.inputs.OPERAND2);
-        return `${left} < ${right}`;
+        return `(${left}) < (${right})`;
     },
 
     operator_gt(project, target, block){
         const left = genInput(project, target, block.inputs.OPERAND1);
         const right = genInput(project, target, block.inputs.OPERAND2);
-        return `${left} > ${right}`;
+        return `(${left}) > (${right})`;
     },
 
     operator_add(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left} + ${right})`;
+        return `(${left}) + (${right})`;
     },
 
     operator_subtract(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left} - ${right})`;
+        return `(${left}) - (${right})`;
     },
 
     operator_multiply(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left} * ${right})`;
+        return `(${left}) * (${right})`;
     },
 
     operator_divide(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left} / ${right})`;
+        return `(${left}) / (${right})`;
     },
 
     operator_mod(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left} % ${right})`;
+        return `(${left}) % (${right})`;
     },
 
     operator_mathop(project, target, block){
@@ -328,7 +332,7 @@ const blocks = {
     },
 
     operator_join(project, target, block){
-        return `(${genInput(project, target, block.inputs.STRING1)} + ${genInput(project, target, block.inputs.STRING2)})`;
+        return `(${genInput(project, target, block.inputs.STRING1)}) + (${genInput(project, target, block.inputs.STRING2)})`;
     },
 
     operator_letter_of(project, target, block){
@@ -415,7 +419,7 @@ function genFuncProto(procName, argNames){
     return `${genIdentifier(funcName)}(${args})`;
 }
 
-function genInput_(project, target, input) {
+function genInput(project, target, input) {
     if (typeof(input) === 'string') {
         return genFuncOrEvent(project, target, target.blocks[input]);
     }
@@ -450,18 +454,12 @@ function genInput_(project, target, input) {
     }
 }
 
-function genInput(project, target, input) {
-    const result = genInput_(project, target, input);
-    console.log("genInput:", input, "->", result);
-    return result;
-}
-
 function genFuncOrEvent(project, target, block) {
     if (!block) {
         return [];
     }
 
-    console.log("genFuncOrEvent:", block);
+    // console.log("genFuncOrEvent:", block);
 
     const proc = blocks[block.opcode];
     if (proc) {
@@ -477,7 +475,7 @@ function genFuncOrEvent(project, target, block) {
 
 function genCodeIndent(code, indent=0) {
     const indentStr = '\t'.repeat(indent);
-    console.log("genCodeIndent:", JSON.stringify(code), typeof(code), Array.isArray(code));
+
     if (typeof(code) == 'object' && Array.isArray(code)) {
         return code.map(c => genCodeIndent(c, indent)).flat();
     } else if (typeof(code) == 'object') {
@@ -487,7 +485,7 @@ function genCodeIndent(code, indent=0) {
         }
 
         const [key, body] = Object.entries(code)[0];
-        console.log("key:", key, "body:", body);
+
         return [
             `${indentStr}${key} {`,
             ...genCodeIndent(body, indent + 1),
@@ -500,9 +498,31 @@ function genCodeIndent(code, indent=0) {
     }
 }
 
+function getBlockSortKey(block) {
+    switch(block.opcode) {
+        case 'procedures_definition':
+            return 0;
+        case 'event_whenflagclicked':
+            return 1;
+        case 'controls_start_as_clone':
+            return 2;
+        case 'event_whenthisspriteclicked':
+            return 3;
+        default:
+            return 4;
+    }
+}
+
+function cmpBlock(a, b) {
+    const aKey = getBlockSortKey(a);
+    const bKey = getBlockSortKey(b);
+    return aKey - bKey || a.opcode.localeCompare(b.opcode);
+}
+
 export function genCode(project, target) {
     const topLevelBlocks = Object.entries(target.blocks).filter(([id, def]) => def.topLevel);
-    const topLevels = topLevelBlocks.map(block => genFuncOrEvent(project, target, block[1])[0]);
+    const sortedBlocks = topLevelBlocks.sort(([id1, blk1], [id2, blk2]) => cmpBlock(blk1, blk2));
+    const topLevels = sortedBlocks.map(block => genFuncOrEvent(project, target, block[1])[0]);
     const codeBlocks = topLevels.map(topLevel => genCodeIndent(topLevel).join("\n"));
     console.log("codeBlocks:", JSON.stringify(codeBlocks, null, 4));
     return codeBlocks.join("\n\n");

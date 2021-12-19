@@ -63,7 +63,7 @@ export function genDeclCode(project, target, readOnly=true) {
     }
 
     if (decl.length > 0) {
-        decl = `var(\n${decl}\n)`;
+        decl = `var(\n${decl}\n)\n\n`;
     }
     if (initializers.length > 0) {
         decl += initializers

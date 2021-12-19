@@ -26,8 +26,6 @@ const blocks = {
         return [
             {
                 [`if (${genInput(project, target, block.inputs.CONDITION)})`]: genInput(project, target, block.inputs.SUBSTACK),
-            },
-            {
                 'else': genInput(project, target, block.inputs.SUBSTACK2),
             },
         ];
@@ -483,12 +481,19 @@ function genCodeIndent(code, indent=0) {
     if (typeof(code) == 'object' && Array.isArray(code)) {
         return code.map(c => genCodeIndent(c, indent)).flat();
     } else if (typeof(code) == 'object') {
+        const els = code["else"];
+        if (els) {
+            delete code["else"];
+        }
+
         const [key, body] = Object.entries(code)[0];
         console.log("key:", key, "body:", body);
         return [
             `${indentStr}${key} {`,
             ...genCodeIndent(body, indent + 1),
-            `${indentStr}}`
+            ...(els ? [`${indentStr}} else {`] : []),
+            ...(els ? genCodeIndent(els, indent + 1) : []),
+            `${indentStr}}`,
         ];
     } else {
         return [`${indentStr}${code}`];

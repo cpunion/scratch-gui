@@ -8,7 +8,7 @@ const blocks = {
 
     control_repeat_until(project, target, block){
         return {
-            [`for !(${genInput(project, target, block.inputs.CONDITION)})`]: genInput(project, target, block.inputs.SUBSTACK),
+            [`for !${genInput(project, target, block.inputs.CONDITION)}`]: genInput(project, target, block.inputs.SUBSTACK),
         };
     },
 
@@ -252,67 +252,67 @@ const blocks = {
     },
 
     operator_not(project, target, block){
-        return `!(${genInput(project, target, block.inputs.OPERAND)})`;
+        return `!${genInput(project, target, block.inputs.OPERAND)}`;
     },
 
     operator_and(project, target, block){
         const left = genInput(project, target, block.inputs.OPERAND1);
         const right = genInput(project, target, block.inputs.OPERAND2);
-        return `(${left}) && (${right})`;
+        return `(${left} && ${right})`;
     },
 
     operator_or(project, target, block){
         const left = genInput(project, target, block.inputs.OPERAND1);
         const right = genInput(project, target, block.inputs.OPERAND2);
-        return `(${left}) || (${right})`;
+        return `(${left} || ${right})`;
     },
 
     operator_equals(project, target, block){
         const left = genInput(project, target, block.inputs.OPERAND1);
         const right = genInput(project, target, block.inputs.OPERAND2);
-        return `(${left}) == (${right})`;
+        return `(${left} == ${right})`;
     },
 
     operator_lt(project, target, block){
         const left = genInput(project, target, block.inputs.OPERAND1);
         const right = genInput(project, target, block.inputs.OPERAND2);
-        return `(${left}) < (${right})`;
+        return `(${left} < ${right})`;
     },
 
     operator_gt(project, target, block){
         const left = genInput(project, target, block.inputs.OPERAND1);
         const right = genInput(project, target, block.inputs.OPERAND2);
-        return `(${left}) > (${right})`;
+        return `(${left} > ${right})`;
     },
 
     operator_add(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left}) + (${right})`;
+        return `(${left} + ${right})`;
     },
 
     operator_subtract(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left}) - (${right})`;
+        return `(${left} - ${right})`;
     },
 
     operator_multiply(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left}) * (${right})`;
+        return `(${left} * ${right})`;
     },
 
     operator_divide(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left}) / (${right})`;
+        return `(${left} / ${right})`;
     },
 
     operator_mod(project, target, block){
         const left = genInput(project, target, block.inputs.NUM1);
         const right = genInput(project, target, block.inputs.NUM2);
-        return `(${left}) % (${right})`;
+        return `(${left} % ${right})`;
     },
 
     operator_mathop(project, target, block){
